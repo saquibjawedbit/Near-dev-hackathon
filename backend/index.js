@@ -19,6 +19,7 @@ app.use(cors());
 app.use(express.json());
 
 app.use("/api/game", gameRouter);
+app.use("/api/contract", contractRouter);
 
 io.on("connection", (socket) => {
   console.log("New client connected");

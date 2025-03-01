@@ -1,8 +1,12 @@
 import axios from "axios";
 import { Server } from "socket.io";
 import { Chess } from "chess.js";
+import http from "http";
+import express from "express";
 
-const io = new Server({
+const app = express();
+const server = http.createServer(app);
+const io = new Server(server, {
   cors: { origin: "*" },
 });
 
@@ -55,7 +59,7 @@ async function playAIvsAI(gameId) {
     liveMatches[gameId] = { moves, winner: null };
 
     // Emit move to frontend
-    io.emit(`match-update-${gameId}`, { moves });
+    io.to(gameId).emit(`match-update-${gameId}`, { moves });
 
     await new Promise((resolve) => setTimeout(resolve, 3000)); // Delay for 3s
 
@@ -78,10 +82,22 @@ async function playAIvsAI(gameId) {
 
   console.log("Game Over! Winner:", winner);
   liveMatches[gameId] = { moves, winner };
+  io.to(gameId).emit(`match-end-${gameId}`, { winner, moves });
 
-  // Emit game result
-  io.emit(`match-end-${gameId}`, { winner, moves });
+  // Emit game resul
 }
+io.on("connection", (socket) => {
+  console.log("New client connected");
+
+  socket.on("join-game", (gameId) => {
+    socket.join(gameId);
+    console.log(`Client joined room: ${gameId}`);
+  });
+
+  socket.on("disconnect", () => {
+    console.log("Client disconnected");
+  });
+});
 
 // Start a match
 export const startMatch = (req, res) => {

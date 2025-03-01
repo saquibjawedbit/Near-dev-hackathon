@@ -1,6 +1,28 @@
 import { setupWalletSelector } from "@near-wallet-selector/core";
 import { setupMyNearWallet } from "@near-wallet-selector/my-near-wallet";
 import "@near-wallet-selector/modal-ui/styles.css";
+import { connect, keyStores, WalletConnection, Contract } from "near-api-js";
+
+const config = {
+  networkId: "testnet",
+  keyStore: new keyStores.BrowserLocalStorageKeyStore(),
+  nodeUrl: "https://rpc.testnet.near.org",
+  walletUrl: "https://wallet.testnet.near.org",
+  contractName: "saquibjawed.testnet",
+};
+
+export async function initNear() {
+  const near = await connect(config);
+  const wallet = new WalletConnection(near);
+  return { near, wallet };
+}
+
+export async function getContract(wallet) {
+  return new Contract(wallet.account(), config.contractName, {
+    viewMethods: ["get_game"], // Read-only methods
+    changeMethods: ["place_bet", "set_winner", "claim_winnings"], // Methods that modify state
+  });
+}
 
 // Create a function to initialize wallet selector
 async function initWalletSelector() {

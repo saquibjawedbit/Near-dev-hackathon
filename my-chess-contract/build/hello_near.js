@@ -2448,6 +2448,23 @@ function inputRaw() {
 function input() {
   return decode(inputRaw());
 }
+/**
+ * Create a NEAR promise which will have multiple promise actions inside.
+ *
+ * @param accountId - The account ID of the target contract.
+ */
+function promiseBatchCreate(accountId) {
+  return env.promise_batch_create(accountId);
+}
+/**
+ * Attach a transfer promise action to the NEAR promise index with the provided promise index.
+ *
+ * @param promiseIndex - The index of the promise to attach a transfer action to.
+ * @param amount - The amount of NEAR to transfer.
+ */
+function promiseBatchActionTransfer(promiseIndex, amount) {
+  env.promise_batch_action_transfer(promiseIndex, amount);
+}
 
 /**
  * Tells the SDK to expose this function as a view function.
@@ -2529,51 +2546,144 @@ function NearBindgen({
   };
 }
 
-var _dec, _dec2, _dec3, _class, _class2;
-let HelloNear = (_dec = NearBindgen({}), _dec2 = view(), _dec3 = call({}), _dec(_class = (_class2 = class HelloNear {
+var _dec, _dec2, _dec3, _dec4, _dec5, _class, _class2;
+let ChessBettingGame = (_dec = NearBindgen({}), _dec2 = call({}), _dec3 = call({}), _dec4 = call({}), _dec5 = view(), _dec(_class = (_class2 = class ChessBettingGame {
   static schema = {
-    greeting: 'string'
+    games: 'object' // Stores game info
   };
-  greeting = 'Hello';
-  // This method is read-only and can be called for free
-  get_greeting() {
-    return this.greeting;
-  }
-  // This method changes the state, for which it cost gas
-  set_greeting({
-    greeting
+
+  // Mapping of gameId to game state
+  games = {};
+  // Place a bet (Requires NEAR tokens)
+  place_bet({
+    gameId
   }) {
-    log(`Saving greeting ${greeting}`);
-    this.greeting = greeting;
+    const sender = predecessorAccountId();
+    const deposit = attachedDeposit();
+    log(`${sender} is placing a bet of ${deposit} yoctoNEAR on game ${gameId}`);
+    if (!this.games[gameId]) {
+      this.games[gameId] = {
+        player1: sender,
+        player2: "",
+        betAmount: deposit.toString(),
+        winner: null
+      };
+    } else if (!this.games[gameId].player2) {
+      this.games[gameId].player2 = sender;
+      this.games[gameId].betAmount = (BigInt(this.games[gameId].betAmount) + BigInt(deposit)).toString();
+    } else {
+      log("Game already has two players.");
+      throw new Error("Game already has two players.");
+    }
   }
-}, _applyDecoratedDescriptor(_class2.prototype, "get_greeting", [_dec2], Object.getOwnPropertyDescriptor(_class2.prototype, "get_greeting"), _class2.prototype), _applyDecoratedDescriptor(_class2.prototype, "set_greeting", [_dec3], Object.getOwnPropertyDescriptor(_class2.prototype, "set_greeting"), _class2.prototype), _class2)) || _class);
-function set_greeting() {
-  const _state = HelloNear._getState();
-  if (!_state && HelloNear._requireInit()) {
+  // Set the winner (Admin function)
+  set_winner({
+    gameId,
+    winner
+  }) {
+    if (!this.games[gameId]) {
+      log("Game not found.");
+      throw new Error("Game not found.");
+    }
+    if (winner !== this.games[gameId].player1 && winner !== this.games[gameId].player2) {
+      log("Winner must be one of the players.");
+      throw new Error("Winner must be one of the players.");
+    }
+    this.games[gameId].winner = winner;
+    log(`Winner set: ${winner} for game ${gameId}`);
+  }
+  // Claim winnings (Winner withdraws funds)
+  claim_winnings({
+    gameId
+  }) {
+    if (!this.games[gameId]) {
+      log("Game not found.");
+      throw new Error("Game not found.");
+    }
+    if (!this.games[gameId].winner) {
+      log("Winner not set.");
+      throw new Error("Winner not set.");
+    }
+    const sender = predecessorAccountId();
+    if (sender !== this.games[gameId].winner) {
+      log("You are not the winner.");
+      throw new Error("You are not the winner.");
+    }
+    const prize = BigInt(this.games[gameId].betAmount);
+    this.games[gameId].betAmount = "0"; // Reset the bet amount
+
+    log(`${sender} is claiming winnings of ${prize} yoctoNEAR`);
+
+    // Transfer winnings to the winner
+    const promise = promiseBatchCreate(sender);
+    promiseBatchActionTransfer(promise, prize);
+  }
+  // Get game details
+  get_game({
+    gameId
+  }) {
+    if (!this.games[gameId]) {
+      log("Game not found.");
+      throw new Error("Game not found.");
+    }
+    return this.games[gameId];
+  }
+}, _applyDecoratedDescriptor(_class2.prototype, "place_bet", [_dec2], Object.getOwnPropertyDescriptor(_class2.prototype, "place_bet"), _class2.prototype), _applyDecoratedDescriptor(_class2.prototype, "set_winner", [_dec3], Object.getOwnPropertyDescriptor(_class2.prototype, "set_winner"), _class2.prototype), _applyDecoratedDescriptor(_class2.prototype, "claim_winnings", [_dec4], Object.getOwnPropertyDescriptor(_class2.prototype, "claim_winnings"), _class2.prototype), _applyDecoratedDescriptor(_class2.prototype, "get_game", [_dec5], Object.getOwnPropertyDescriptor(_class2.prototype, "get_game"), _class2.prototype), _class2)) || _class);
+function get_game() {
+  const _state = ChessBettingGame._getState();
+  if (!_state && ChessBettingGame._requireInit()) {
     throw new Error("Contract must be initialized");
   }
-  const _contract = HelloNear._create();
+  const _contract = ChessBettingGame._create();
   if (_state) {
-    HelloNear._reconstruct(_contract, _state);
+    ChessBettingGame._reconstruct(_contract, _state);
   }
-  const _args = HelloNear._getArgs();
-  const _result = _contract.set_greeting(_args);
-  HelloNear._saveToStorage(_contract);
-  if (_result !== undefined) if (_result && _result.constructor && _result.constructor.name === "NearPromise") _result.onReturn();else env.value_return(HelloNear._serialize(_result, true));
+  const _args = ChessBettingGame._getArgs();
+  const _result = _contract.get_game(_args);
+  if (_result !== undefined) if (_result && _result.constructor && _result.constructor.name === "NearPromise") _result.onReturn();else env.value_return(ChessBettingGame._serialize(_result, true));
 }
-function get_greeting() {
-  const _state = HelloNear._getState();
-  if (!_state && HelloNear._requireInit()) {
+function claim_winnings() {
+  const _state = ChessBettingGame._getState();
+  if (!_state && ChessBettingGame._requireInit()) {
     throw new Error("Contract must be initialized");
   }
-  const _contract = HelloNear._create();
+  const _contract = ChessBettingGame._create();
   if (_state) {
-    HelloNear._reconstruct(_contract, _state);
+    ChessBettingGame._reconstruct(_contract, _state);
   }
-  const _args = HelloNear._getArgs();
-  const _result = _contract.get_greeting(_args);
-  if (_result !== undefined) if (_result && _result.constructor && _result.constructor.name === "NearPromise") _result.onReturn();else env.value_return(HelloNear._serialize(_result, true));
+  const _args = ChessBettingGame._getArgs();
+  const _result = _contract.claim_winnings(_args);
+  ChessBettingGame._saveToStorage(_contract);
+  if (_result !== undefined) if (_result && _result.constructor && _result.constructor.name === "NearPromise") _result.onReturn();else env.value_return(ChessBettingGame._serialize(_result, true));
+}
+function set_winner() {
+  const _state = ChessBettingGame._getState();
+  if (!_state && ChessBettingGame._requireInit()) {
+    throw new Error("Contract must be initialized");
+  }
+  const _contract = ChessBettingGame._create();
+  if (_state) {
+    ChessBettingGame._reconstruct(_contract, _state);
+  }
+  const _args = ChessBettingGame._getArgs();
+  const _result = _contract.set_winner(_args);
+  ChessBettingGame._saveToStorage(_contract);
+  if (_result !== undefined) if (_result && _result.constructor && _result.constructor.name === "NearPromise") _result.onReturn();else env.value_return(ChessBettingGame._serialize(_result, true));
+}
+function place_bet() {
+  const _state = ChessBettingGame._getState();
+  if (!_state && ChessBettingGame._requireInit()) {
+    throw new Error("Contract must be initialized");
+  }
+  const _contract = ChessBettingGame._create();
+  if (_state) {
+    ChessBettingGame._reconstruct(_contract, _state);
+  }
+  const _args = ChessBettingGame._getArgs();
+  const _result = _contract.place_bet(_args);
+  ChessBettingGame._saveToStorage(_contract);
+  if (_result !== undefined) if (_result && _result.constructor && _result.constructor.name === "NearPromise") _result.onReturn();else env.value_return(ChessBettingGame._serialize(_result, true));
 }
 
-export { get_greeting, set_greeting };
+export { claim_winnings, get_game, place_bet, set_winner };
 //# sourceMappingURL=hello_near.js.map

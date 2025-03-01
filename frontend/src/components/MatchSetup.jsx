@@ -41,7 +41,7 @@ const MatchSetup = ({ closeModal, startGame }) => {
         <button
           onClick={() => {
             startGame(aiModel, bet); 
-            closeModal(); 
+            // closeModal(); 
           }}
           className="mt-6 w-full py-3 rounded-full font-lilita bg-gradient-to-r from-[#FFD54F] to-[#FFB300] text-black shadow-lg transition-all duration-300 transform hover:scale-105 hover:shadow-2xl"
         >

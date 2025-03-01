@@ -21,7 +21,7 @@ async function signInWithNEAR() {
     }
 
     const wallet = await walletSelectorInstance.wallet("my-near-wallet");
-    await wallet.signIn({ contractId: "test.testnet" });
+    await wallet.signIn({ contractId: "saquibjawed.testnet" });
   } catch (error) {
     console.error("Error signing in with NEAR:", error);
     return { success: false, error: error.message };

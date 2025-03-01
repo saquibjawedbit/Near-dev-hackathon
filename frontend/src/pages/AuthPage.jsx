@@ -1,10 +1,11 @@
-import React, { useState } from "react";
+import  { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom"; 
 import AuthForm from "../components/AuthForm";
 import axios from "axios";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import authImage from "../assets/AI.png"; 
+import { signInWithNEAR, checkSignedIn } from "../blockchain/authentication.js";
 
 const AuthPage = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -12,6 +13,7 @@ const AuthPage = () => {
 
   const handleAuth = async (formData) => {
     try {
+      signInWithNEAR();
       const url = isLogin ? "#" : "#";
       const response = await axios.post(url, formData);
   
@@ -23,9 +25,19 @@ const AuthPage = () => {
       navigate("/home");
     } catch (error) {
       console.error("Error:", error.response?.data || error);
-      alert(error.response?.data?.message || "An error occurred");
     }
   };
+
+  useEffect(() => {
+    const checkState = async () => {
+      const account = await checkSignedIn();
+      if(account) {
+        navigate("/home");
+      }
+    };
+
+    checkState();
+  }, [navigate]);
 
   return (
     <div className="w-full min-h-screen bg-gradient-to-br from-[#231205] to-[#3d1a00] flex flex-col">

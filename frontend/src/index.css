@@ -1,0 +1,34 @@
+@import url('https://fonts.googleapis.com/css2?family=Lilita+One&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+
+
+@keyframes gradientShift {
+    0% { background: linear-gradient(to right, #556B2F, #3e570b); } 
+    25% { background: linear-gradient(to right, #6B8E23, #4F6820); } 
+    50% { background: linear-gradient(to right, #95c911, #556B2F); } 
+    75% { background: linear-gradient(to right, #6B8E23, #4F6820); } 
+    100% { background: linear-gradient(to right, #556B2F, #3e570b); } 
+}
+
+.animated-gradient {
+    animation: gradientShift 4s infinite alternate ease-in-out;
+    border-bottom: 2px solid #6B8E23;
+    padding: 12px 24px;
+    border-radius: 9999px;
+    display: inline-block;
+    font-size: 1.125rem;
+    font-weight: bold;
+    text-align: center;
+    color: white;
+    transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+}
+
+.animated-gradient:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 12px rgba(107, 142, 35, 0.8);
+}

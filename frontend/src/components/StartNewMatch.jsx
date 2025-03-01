@@ -1,4 +1,11 @@
+import { useNavigate } from "react-router-dom";
+
 const StartNewMatch = ({ openModal }) => {
+  const navigate = useNavigate();
+
+  const handleClick = () => {
+    navigate("/battle");
+  }
   return (
     <div className="w-full md:w-1/2 max-w-lg p-6 bg-gradient-to-r from-[#6F4E37] to-[#D7A86E] text-white rounded-xl shadow-lg border-b-4 border-r-4 border-amber-900 text-center">
       <h1 className="text-3xl font-lilita md:text-4xl text-[#3E2723] mb-4 pb-2 border-b-2 border-amber-950 w-3/4 mx-auto">
@@ -11,7 +18,7 @@ const StartNewMatch = ({ openModal }) => {
 
     
       <button
-        onClick={openModal}
+        onClick={handleClick}
         className="px-6 py-3 text-lg font-bold text-white shadow-lg rounded-full transition-transform transform hover:scale-105 animated-gradient"
       >
         Start a Match ♟️

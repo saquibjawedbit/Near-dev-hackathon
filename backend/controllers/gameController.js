@@ -47,7 +47,7 @@ async function playAIvsAI(gameId) {
     if (moves.length === 0) {
       move = "e2e4"; 
     } else {
-      const useBestMove = Math.random() > 0.5;
+      const useBestMove = Math.random() > 0.1;
       move = useBestMove ? await getBestMove(chess.fen()) : getRandomMove(chess);
     }
 

@@ -24,15 +24,15 @@ const AuthForm = ({ mode, onSubmit }) => {
   return (
     <form 
       onSubmit={handleSubmit} 
-      className="mt-16 flex flex-col items-center w-full max-w-lg p-8 bg-gradient-to-br from-[#3c2719] to-[#000000] shadow-2xl rounded-3xl font-lilita border-b-4 border-r-4 border-amber-950 text-white space-y-6"
+      className="mt-16 flex flex-col items-center w-full max-w-xl p-8 bg-gradient-to-br from-[#3c2719] to-[#000000] shadow-2xl rounded-3xl font-lilita border-b-4 border-r-4 border-amber-950 text-white space-y-6"
     >
       
       <h2 className="text-3xl  text-yellow-500 mb-2 border-b-2 border-yellow-400 w-3/4 pb-2 text-center">
-        {mode === "login" ? "Login" : "Sign Up"}
+        Connect Your NEAR Wallet
       </h2>
 
      
-      <div className="w-full">
+      {/* <div className="w-full">
         <label htmlFor="email" className="block text-lg  text-yellow-500 mb-1">
           Email
         </label>
@@ -46,10 +46,10 @@ const AuthForm = ({ mode, onSubmit }) => {
           placeholder="Enter your email"
           className="w-full p-3 rounded-full bg-yellow-700/30  text-yellow-300 shadow-sm focus:ring-2 focus:ring-[#D7A86E] focus:outline-none"
         />
-      </div>
+      </div> */}
 
     
-      <div className="w-full">
+      {/* <div className="w-full">
         <label htmlFor="password" className="block text-lg  text-yellow-500 mb-1">
           Password
         </label>
@@ -63,7 +63,7 @@ const AuthForm = ({ mode, onSubmit }) => {
           placeholder="Enter your password"
           className="w-full p-3 rounded-full bg-yellow-700/30  text-yellow-300 shadow-sm focus:ring-2 focus:ring-[#D7A86E] focus:outline-none"
         />
-      </div>
+      </div> */}
 
      
       <div className="flex flex-col sm:flex-row w-full gap-4">
@@ -73,11 +73,11 @@ const AuthForm = ({ mode, onSubmit }) => {
           className="mt-4 w-full py-3 rounded-full bg-gradient-to-r border-b-2 border-lime-500 from-[#388134]  to-[#556B2F] text-white  shadow-lg transition-all duration-300 hover:scale-105"
           disabled={loading}
         >
-          {loading ? "Loading..." : mode === "login" ? "Login" : "Sign Up"}
+          LOGIN
         </button>
 
       
-        {mode === "login" && (
+        {/* {mode === "login" && (
           <button
             type="button"
             onClick={handleGuestLogin}
@@ -85,7 +85,7 @@ const AuthForm = ({ mode, onSubmit }) => {
           >
             Login as Guest
           </button>
-        )}
+        )} */}
       </div>
     </form>
   );

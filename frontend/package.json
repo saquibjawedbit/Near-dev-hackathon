@@ -13,9 +13,7 @@
     "@near-wallet-selector/core": "^8.10.0",
     "@near-wallet-selector/modal-ui": "^8.10.0",
     "@near-wallet-selector/my-near-wallet": "^8.10.0",
-
     "axios": "^1.8.1",
-
     "chess.js": "^1.0.0",
     "framer-motion": "^12.4.2",
     "frontend-chessaibattle": "file:",
@@ -23,9 +21,7 @@
     "react-chessboard": "^4.7.2",
     "react-dom": "^19.0.0",
     "react-router-dom": "^7.1.5",
-
-    "safe-buffer": "^5.2.1"
-
+    "safe-buffer": "^5.2.1",
     "socket.io-client": "^4.8.1"
   },
   "devDependencies": {

@@ -10,7 +10,7 @@ const ChessGame = ({ aiModel , gameID }) => {
   const [turn, setTurn] = useState("white");
   const [boardSize, setBoardSize] = useState(400);
   const [moves, setMoves] = useState([]);
-  const backendUrl = "http://localhost:5000"
+  const backendUrl = "http://localhost:5000";
 
   
   useEffect(() => {

@@ -31,6 +31,7 @@ const AuthPage = () => {
   useEffect(() => {
     const checkState = async () => {
       const account = await checkSignedIn();
+      // console.log(account);
       if(account) {
         navigate("/home");
       }

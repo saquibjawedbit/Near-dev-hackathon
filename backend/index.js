@@ -4,6 +4,7 @@ import http from "http";
 import {Server} from "socket.io";
 import cors from "cors";
 import gameRouter from "./routes/gameRoutes.js";
+import contractRouter from "./routes/contractRoutes.js";
 
 
 const app = express();

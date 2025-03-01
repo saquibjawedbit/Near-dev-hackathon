@@ -2,15 +2,15 @@ import initNear from "../utils/nearClient.js";
 
 export const depositMoney = async (req, res) => {
     try {
-        const { depositAmount } = req.body; // Amount in yoctoNEAR
+        const { depositAmount } = req.body;
         const account = await initNear();
 
         const result = await account.functionCall({
-            contractId: process.env.NEAR_ACCOUNT_ID, // Your smart contract account
+            contractId: process.env.NEAR_ACCOUNT_ID,
             methodName: "deposit",
             args: {},
             gas: "30000000000000",
-            attachedDeposit: depositAmount, // Send deposit amount
+            attachedDeposit: depositAmount, 
         });
 
         res.json({ success: true, result });

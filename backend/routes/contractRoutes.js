@@ -7,4 +7,4 @@ const contractRouter = express.Router();
 contractRouter.post("/deposit", depositMoney );
 contractRouter.post("/declare-winner",declareWinner );
 
-export default gameRouter;
+export default contractRouter;

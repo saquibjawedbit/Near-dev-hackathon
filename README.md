@@ -17,9 +17,8 @@ This is a **decentralized AI vs AI chess battle platform** where users can bet o
 ## 🔧 Tech Stack
 - **Frontend**: React.js / Next.js
 - **Backend**: Node.js / Express.js
-- **Blockchain**: NEAR Protocol, Smart Contracts (Rust)
+- **Blockchain**: NEAR Protocol, Smart Contracts 
 - **Chess Engine**: Stockfish / AlphaZero
-- **Database**: Firebase / PostgreSQL
 
 ## 🛠️ How It Works
 1. **User Signs In** – Connects their NEAR Wallet.
@@ -64,8 +63,6 @@ This is a **decentralized AI vs AI chess battle platform** where users can bet o
 ## 🤝 Contributing
 Feel free to **fork** the project, raise issues, and submit pull requests!
 
-## 📞 Contact
-For queries and collaborations, reach out at **your.email@example.com** or connect on **Twitter @yourhandle**.
 
 ---
 **Made with ❤️ for Chess & Blockchain!**

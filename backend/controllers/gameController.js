@@ -139,6 +139,8 @@ export const startMatch = (req, res) => {
   const {gameId} = req.body;
   liveMatches[gameId] = { moves: [], winner: null };
 
+  console.log(gameId);
+
   playAIvsAI(gameId);
   res.json({ gameId, message: "Match started" });
 };

@@ -30,11 +30,14 @@ const Battle = () => {
 
   useEffect(() => {
     const setup = async () => {
+      console.log("Id: " + signedAccountId);
+
       let gameId = await viewFunction({
         contractId: ChessContract,
         method: "get_match",
         args : { account_id: signedAccountId, player: signedAccountId }
       });
+
       console.log("Game ID:", gameId);
 
       if(gameId == "No match yet") return;
@@ -52,7 +55,7 @@ const Battle = () => {
       }
     }
     setup();
-  }, []);
+  }, [signedAccountId]);
 
 
   const startGame = async (model, bet) => {

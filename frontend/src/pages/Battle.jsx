@@ -1,29 +1,22 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ChessGame from "../components/ChessGame";
 import MatchSetup from "../components/MatchSetup";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import axios from "axios";
-import { initNear, getContract } from "../blockchain/authentication";
+import { useWalletSelector } from '@near-wallet-selector/react-hook';
+import { ChessContract } from "../config.js";
 
 const Battle = () => {
+  const { signedAccountId, callFunction, viewFunction } = useWalletSelector();
   const [gameStarted, setGameStarted] = useState(false);
   const [selectedModel, setSelectedModel] = useState("");
   const [betAmount, setBetAmount] = useState(0);
   const [gameId, setGameId] = useState("");
-  const [wallet, setWallet] = useState(null);
-  const [contract, setContract] = useState(null);
-  const [accountId, setAccountId] = useState("");
 
   async function handlePlaceBet(gameId) {
-    if (!contract) return alert("Connect wallet first!");
     try {
-      await contract.place_bet(
-        { gameId: gameId }, // Change gameId dynamically
-        "30000000000000", // Gas (Optional: ~30 TGas)
-        "1000000000000000000000000" // Bet Amount in YoctoNEAR (1 NEAR)
-      );
-      alert("Bet placed successfully!");
+      
     } catch (error) {
       console.error("Bet failed:", error);
       alert("Error placing bet.");
@@ -32,7 +25,6 @@ const Battle = () => {
 
 
   const startGame = async (model, bet) => {
-
     try {
       handlePlaceBet();
       const response = await axios.post("http://localhost:5000/api/game/start-match");
@@ -54,16 +46,21 @@ const Battle = () => {
   };
 
   useEffect(() => {
-    async function setup() {
-      const { wallet } = await initNear();
-      setWallet(wallet);
-      setAccountId(wallet.getAccountId());
-      if (wallet.isSignedIn()) {
-        setContract(await getContract(wallet));
-      }
+    if(signedAccountId) {
+      viewFunction({
+        contractId: ChessContract,
+        method: "get_game",
+        args: { account_id: signedAccountId, game_id: signedAccountId },
+      })
+      .then((game) => {
+        console.log("Game:", game);
+      })
+      .catch(error => {
+        console.error("Error fetching game:", error);
+      });
     }
-    setup();
-  }, []);
+  }, [signedAccountId]);
+
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-black to-amber-950 text-white">

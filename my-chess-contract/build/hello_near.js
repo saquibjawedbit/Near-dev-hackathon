@@ -2623,8 +2623,9 @@ let ChessBettingGame = (_dec = NearBindgen({}), _dec2 = call({}), _dec3 = call({
     gameId
   }) {
     if (!this.games[gameId]) {
-      log("Game not found.");
-      throw new Error("Game not found.");
+      return {
+        "hello": "world"
+      };
     }
     return this.games[gameId];
   }

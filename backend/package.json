@@ -18,6 +18,7 @@
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "near-api-js": "^5.0.1",
+    "nodemon": "^3.1.9",
     "socket.io": "^4.8.1",
     "stockfish": "^16.0.0"
   }

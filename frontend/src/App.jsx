@@ -3,6 +3,7 @@ import AuthPage from "./pages/AuthPage";
 import Home from "./pages/Home";
 import Battle from "./pages/Battle";
 
+
 function App() {
   return (
     <Router>

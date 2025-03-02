@@ -13,6 +13,7 @@ const Battle = () => {
   const [selectedModel, setSelectedModel] = useState("");
   const [betAmount, setBetAmount] = useState(0);
   const [gameId, setGameId] = useState("");
+  const backendUrl = "https://near-dev-hackathon.onrender.com/";
 
   async function handlePlaceBet() {
     try {
@@ -43,7 +44,7 @@ const Battle = () => {
       if(gameId == "No match yet") return;
 
       console.log("Game ID:", gameId);  
-      const response = await axios.post("http://localhost:5000/api/game/start-match", {gameId});
+      const response = await axios.post(`${backendUrl}api/game/start-match`, {gameId});
       if (response.data && response.data.gameId) {
         // setSelectedModel(model);
         // setBetAmount(bet);
@@ -61,7 +62,7 @@ const Battle = () => {
   const startGame = async (model, bet) => {
     try {
       const gameId = await handlePlaceBet();
-      const response = await axios.post("http://localhost:5000/api/game/start-match", {gameId});
+      const response = await axios.post(`${backendUrl}api/game/start-match`, {gameId});
 
       if (response.data && response.data.gameId) {
         setSelectedModel(model);

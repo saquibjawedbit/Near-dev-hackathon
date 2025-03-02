@@ -12,11 +12,12 @@ const Home = () => {
   const [gameStarted, setGameStarted] = useState(false);
   const [selectedModel, setSelectedModel] = useState("");
   const [gameId,setGameId] = useState("");
+  const backendUrl = "https://near-dev-hackathon.onrender.com/";
 
   const startGame = async (model, bet) => {
 
     try {
-      const response = await axios.post("http://localhost:5000/api/game/start-match");
+      const response = await axios.post(`${backendUrl}api/game/start-match`);
 
       if (response.data && response.data.gameId) {
         setSelectedModel(model);

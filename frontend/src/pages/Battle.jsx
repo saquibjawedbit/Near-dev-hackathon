@@ -45,8 +45,8 @@ const Battle = () => {
       console.log("Game ID:", gameId);  
       const response = await axios.post("http://localhost:5000/api/game/start-match", {gameId});
       if (response.data && response.data.gameId) {
-        setSelectedModel(model);
-        setBetAmount(bet);
+        // setSelectedModel(model);
+        // setBetAmount(bet);
         setGameId(response.data.gameId);
         setGameStarted(true);
         console.log("Game ID:", response.data.gameId);
@@ -61,6 +61,16 @@ const Battle = () => {
   const startGame = async (model, bet) => {
     try {
       const gameId = await handlePlaceBet();
+      const response = await axios.post("http://localhost:5000/api/game/start-match", {gameId});
+
+      if (response.data && response.data.gameId) {
+        setSelectedModel(model);
+        // setBetAmount(bet);
+        setGameId(response.data.gameId);
+        setGameStarted(true);
+        console.log("Game ID:", response.data.gameId);
+
+      }
     } catch (error) {
       console.error("Error starting the game:", error);
     }

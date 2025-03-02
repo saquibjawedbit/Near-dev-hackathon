@@ -48,38 +48,38 @@ async function playAIvsAI(gameId) {
   let chess = new Chess();
   let moves = [];
 
-  // while (!chess.isGameOver()) {
-  //   let move;
+  while (!chess.isGameOver()) {
+    let move;
     
-  //   if (moves.length === 0) {
-  //     move = "e2e4"; 
-  //   } else {
-  //     const useBestMove = Math.random() > 0.1;
-  //     move = useBestMove ? await getBestMove(chess.fen()) : getRandomMove(chess);
-  //   }
+    if (moves.length === 0) {
+      move = "e2e4"; 
+    } else {
+      const useBestMove = Math.random() > 0.1;
+      move = useBestMove ? await getBestMove(chess.fen()) : getRandomMove(chess);
+    }
 
-  //   if (!move || !chess.move(move)) break;
+    if (!move || !chess.move(move)) break;
 
-  //   console.log(`Move ${moves.length + 1}:`, move);
-  //   moves.push(move);
+    console.log(`Move ${moves.length + 1}:`, move);
+    moves.push(move);
 
-  //   liveMatches[gameId] = { moves, winner: null };
+    liveMatches[gameId] = { moves, winner: null };
 
-  //   // Emit move to frontend
-  //   io.to(gameId).emit(`match-update-${gameId}`, { moves });
+    // Emit move to frontend
+    io.to(gameId).emit(`match-update-${gameId}`, { moves });
 
-  //   await new Promise((resolve) => setTimeout(resolve, 3000)); // Delay for 3s
+    await new Promise((resolve) => setTimeout(resolve, 3000)); // Delay for 3s
 
-  //   if (chess.isGameOver()) break;
-  // }
+    if (chess.isGameOver()) break;
+  }
 
   // Determine winner
   let winner = "AI 1";
-  // if (chess.isCheckmate()) {
-  //   winner = chess.turn() === "w" ? "AI 2" : "AI 1";
-  // } else {
-  //   winner = "AI 1";
-  // }
+  if (chess.isCheckmate()) {
+    winner = chess.turn() === "w" ? "AI 2" : "AI 1";
+  } else {
+    winner = "AI 1";
+  }
 
   //get first player name
   const players = gameId.split("_");

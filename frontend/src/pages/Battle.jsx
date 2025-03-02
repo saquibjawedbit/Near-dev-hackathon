@@ -16,7 +16,12 @@ const Battle = () => {
 
   async function handlePlaceBet(gameId) {
     try {
-      
+      let outcome = await callFunction({
+        contractId: ChessContract,
+        method: "place_bet",
+        args: { game_id: gameId, bet: betAmount }
+      });
+      console.log("Bet placed:", outcome);
     } catch (error) {
       console.error("Bet failed:", error);
       alert("Error placing bet.");

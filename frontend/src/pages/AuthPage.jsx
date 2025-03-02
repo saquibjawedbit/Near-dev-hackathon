@@ -27,6 +27,7 @@ const AuthPage = () => {
     }
   }, [signedAccountId]);
 
+
   return (
     <div className="w-full min-h-screen bg-gradient-to-br from-[#231205] to-[#3d1a00] flex flex-col">
       <Header />
@@ -51,7 +52,7 @@ const AuthPage = () => {
             onClick={() => setIsLogin(!isLogin)}
             className="mt-4 text-yellow-400 font-lilita underline hover:text-custom-red"
           >
-            {isLogin ? "Don't have an account? Sign Up" : "Already have an account? Login"}
+            
           </button>
         </div>
 

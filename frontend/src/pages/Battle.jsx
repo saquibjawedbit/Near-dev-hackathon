@@ -14,14 +14,15 @@ const Battle = () => {
   const [betAmount, setBetAmount] = useState(0);
   const [gameId, setGameId] = useState("");
 
-  async function handlePlaceBet(gameId) {
+  async function handlePlaceBet() {
     try {
-      let outcome = await callFunction({
+      let gameID = await callFunction({
         contractId: ChessContract,
-        method: "place_bet",
-        args: { game_id: gameId, bet: betAmount }
+        method: "join_queue",
+        args: { account_id: signedAccountId},
       });
-      console.log("Bet placed:", outcome);
+     
+      console.log("Bet placed:", gameID);
     } catch (error) {
       console.error("Bet failed:", error);
       alert("Error placing bet.");
@@ -31,17 +32,17 @@ const Battle = () => {
 
   const startGame = async (model, bet) => {
     try {
-      handlePlaceBet();
+      await handlePlaceBet();
       const response = await axios.post("http://localhost:5000/api/game/start-match");
 
       if (response.data && response.data.gameId) {
         setSelectedModel(model);
         setBetAmount(bet);
         setGameId(response.data.gameId);
+        setGameStarted(true);
         console.log("Game ID:", response.data.gameId);
 
-        await handlePlaceBet(gameId);
-        setGameStarted(true);
+        await handlePlaceBet();
       } else {
         console.error("Game ID not received from the server");
       }

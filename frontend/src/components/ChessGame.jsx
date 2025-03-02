@@ -12,7 +12,7 @@ const ChessGame = ({ aiModel , gameID }) => {
   const [boardSize, setBoardSize] = useState(400);
   const [moves, setMoves] = useState([]);
   const [winner,setWinner] = useState(null);
-  const backendUrl = "http://localhost:5000";
+  const backendUrl = "https://near-dev-hackathon.onrender.com/";
 
   const navigate = useNavigate();
 

@@ -20,7 +20,6 @@ const Battle = () => {
         contractId: ChessContract,
         method: "join_queue",
       });
-      
       console.log("Bet placed:", gameID);
       return gameID;
     } catch (error) {
@@ -29,23 +28,36 @@ const Battle = () => {
     }
   }
 
+  useEffect(() => {
+    const setup = async () => {
+      let gameId = await viewFunction({
+        contractId: ChessContract,
+        method: "get_match",
+        args : { account_id: signedAccountId, player: signedAccountId }
+      });
+      console.log("Game ID:", gameId);
 
-  const startGame = async (model, bet) => {
-    try {
-      const gameId = await handlePlaceBet();
+      if(gameId == "No match yet") return;
+
+      console.log("Game ID:", gameId);  
       const response = await axios.post("http://localhost:5000/api/game/start-match", {gameId});
-
       if (response.data && response.data.gameId) {
         setSelectedModel(model);
         setBetAmount(bet);
         setGameId(response.data.gameId);
         setGameStarted(true);
         console.log("Game ID:", response.data.gameId);
-
-        await handlePlaceBet();
       } else {
         console.error("Game ID not received from the server");
       }
+    }
+    setup();
+  }, []);
+
+
+  const startGame = async (model, bet) => {
+    try {
+      const gameId = await handlePlaceBet();
     } catch (error) {
       console.error("Error starting the game:", error);
     }

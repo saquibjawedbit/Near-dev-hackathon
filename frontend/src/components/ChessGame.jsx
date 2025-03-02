@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Chess } from "chess.js";
 import { Chessboard } from "react-chessboard";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const ChessGame = ({ aiModel , gameID }) => {
   const [game, setGame] = useState(new Chess());
@@ -10,7 +11,10 @@ const ChessGame = ({ aiModel , gameID }) => {
   const [turn, setTurn] = useState("white");
   const [boardSize, setBoardSize] = useState(400);
   const [moves, setMoves] = useState([]);
+  const [winner,setWinner] = useState(null);
   const backendUrl = "http://localhost:5000";
+
+  const navigate = useNavigate();
 
   
   useEffect(() => {
@@ -30,6 +34,11 @@ const ChessGame = ({ aiModel , gameID }) => {
         const response = await axios.get(`${backendUrl}/api/game/match-result/${gameID}`);
         if (response.data && response.data.moves) {
           setMoves(response.data.moves);
+          if (response.data.winner) {
+            setWinner(response.data.winner);
+            clearInterval(interval);
+            console.log("Game Over! Winner:", response.data.winner);
+          }
         }
       } catch (error) {
         console.error("Error fetching game moves:", error);
@@ -37,7 +46,8 @@ const ChessGame = ({ aiModel , gameID }) => {
     };
 
     fetchMoves();
-    const interval = setInterval(fetchMoves, 3000); 
+    
+    const interval = setInterval(fetchMoves, 1000); 
 
     return () => clearInterval(interval);
   }, [gameID]);
@@ -48,6 +58,8 @@ const ChessGame = ({ aiModel , gameID }) => {
     let newGame = new Chess();
     let newCapturedWhite = [];
     let newCapturedBlack = [];
+
+    console.log(moves)
 
     moves.forEach((move) => {
       let moveResult = newGame.move(move);
@@ -84,6 +96,14 @@ const ChessGame = ({ aiModel , gameID }) => {
     setGame(new Chess(game.fen()));
     setTurn(game.turn() === "w" ? "white" : "black");
     return true;
+  };
+
+  const handlePlayAgain = () => {
+    navigate("/battle");
+  };
+
+  const handleGoHome = () => {
+    navigate("/home");
   };
 
   return (
@@ -130,6 +150,36 @@ const ChessGame = ({ aiModel , gameID }) => {
           </div>
         </div>
       </div>
+
+      {winner && (
+  <div className="fixed inset-0 bg-black bg-opacity-80 flex justify-center items-center">
+    <div className="bg-red-950/90 text-yellow-300 p-10 rounded-xl shadow-2xl text-center w-96 md:w-[500px] lg:w-[600px] h-auto">
+      <h2 className="text-3xl md:text-4xl font-extrabold mb-6">Game Over!</h2>
+      <p className="text-xl md:text-2xl font-semibold">
+        Winner: <span className="text-green-400">{winner}</span>
+      </p>
+      <div className="mt-6 flex justify-center gap-6">
+        <button
+          onClick={handlePlayAgain}
+          className="px-6 py-3 bg-yellow-500 text-black text-lg rounded-lg hover:bg-yellow-600 transition"
+        >
+          Play Again
+        </button>
+        <button
+          onClick={handleGoHome}
+          className="px-6 py-3 bg-yellow-500 text-black text-lg rounded-lg hover:bg-yellow-600 transition"
+        >
+          Home
+        </button>
+        
+      </div>
+      <p className="text-sm md:text-sm font-semibold text-gray-500 mt-6">
+        The winning amount tansfered to the winner's account
+      </p>
+    </div>
+  </div>
+)}
+
     </div>
   );
 };

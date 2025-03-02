@@ -2415,6 +2415,12 @@ function attachedDeposit() {
   return env.attached_deposit();
 }
 /**
+ * Returns the current account's account balance.
+ */
+function accountBalance() {
+  return env.account_balance();
+}
+/**
  * Reads the value from NEAR storage that is stored under the provided key.
  *
  * @param key - The key to read from storage.
@@ -2427,6 +2433,18 @@ function storageReadRaw(key) {
   return env.read_register(0);
 }
 /**
+ * Reads the utf-8 string value from NEAR storage that is stored under the provided key.
+ *
+ * @param key - The utf-8 string key to read from storage.
+ */
+function storageRead(key) {
+  const ret = storageReadRaw(encode(key));
+  if (ret !== null) {
+    return decode(ret);
+  }
+  return null;
+}
+/**
  * Writes the provided bytes to NEAR storage under the provided key.
  *
  * @param key - The key under which to store the value.
@@ -2434,6 +2452,15 @@ function storageReadRaw(key) {
  */
 function storageWriteRaw(key, value) {
   return env.storage_write(key, value, EVICTED_REGISTER) === 1n;
+}
+/**
+ * Writes the provided utf-8 string to NEAR storage under the provided key.
+ *
+ * @param key - The utf-8 string key under which to store the value.
+ * @param value - The utf-8 string value to store.
+ */
+function storageWrite(key, value) {
+  return storageWriteRaw(encode(key), encode(value));
 }
 /**
  * Returns the arguments passed to the current smart contract call.
@@ -2546,90 +2573,91 @@ function NearBindgen({
   };
 }
 
-var _dec, _dec2, _dec3, _dec4, _dec5, _class, _class2;
-let ChessBettingGame = (_dec = NearBindgen({}), _dec2 = call({}), _dec3 = call({}), _dec4 = call({}), _dec5 = view(), _dec(_class = (_class2 = class ChessBettingGame {
-  static schema = {
-    games: 'object' // Stores game info
-  };
-
-  // Mapping of gameId to game state
+var _dec, _dec2, _dec3, _dec4, _dec5, _dec6, _class, _class2;
+let ChessBettingGame = (_dec = NearBindgen({}), _dec2 = call({}), _dec3 = call({}), _dec4 = call({}), _dec5 = view(), _dec6 = view(), _dec(_class = (_class2 = class ChessBettingGame {
   games = {};
-  // Place a bet (Requires NEAR tokens)
-  place_bet({
-    gameId
-  }) {
-    const sender = predecessorAccountId();
-    const deposit = attachedDeposit();
-    log(`${sender} is placing a bet of ${deposit} yoctoNEAR on game ${gameId}`);
-    if (!this.games[gameId]) {
+  waitingPlayers = [];
+  playerToGameId = {};
+  constructor() {
+    // Load stored state when the contract is deployed or called
+    this.games = JSON.parse(storageRead("games") || "{}");
+    this.waitingPlayers = JSON.parse(storageRead("waitingPlayers") || "[]");
+    this.playerToGameId = JSON.parse(storageRead("playerToGameId") || "{}");
+  }
+  join_queue() {
+    const player = predecessorAccountId();
+    const betAmount = BigInt("1000000000000000000000000"); // 1 NEAR in yoctoNEAR
+
+    log(`${player} joined matchmaking with a default bet of 1 NEAR.`);
+    if (accountBalance() < betAmount) {
+      log("Insufficient balance to place the bet.");
+      throw new Error("Insufficient balance. You need at least 1 NEAR.");
+    }
+    if (this.waitingPlayers.length > 0) {
+      let opponent = this.waitingPlayers.shift();
+      let gameId = player + "_" + opponent;
       this.games[gameId] = {
-        player1: sender,
-        player2: "",
-        betAmount: deposit.toString(),
+        player1: player,
+        player2: opponent,
+        betAmount: betAmount.toString(),
         winner: null
       };
-    } else if (!this.games[gameId].player2) {
-      this.games[gameId].player2 = sender;
-      this.games[gameId].betAmount = (BigInt(this.games[gameId].betAmount) + BigInt(deposit)).toString();
+      this.playerToGameId[player] = gameId;
+      this.playerToGameId[opponent] = gameId;
+
+      // Store updated state
+      storageWrite("games", JSON.stringify(this.games));
+      storageWrite("playerToGameId", JSON.stringify(this.playerToGameId));
+      storageWrite("waitingPlayers", JSON.stringify(this.waitingPlayers));
+      log(`Match found: ${player} vs ${opponent} (Game ID: ${gameId}) with 1 NEAR bet.`);
+      return gameId;
     } else {
-      log("Game already has two players.");
-      throw new Error("Game already has two players.");
+      this.waitingPlayers.push(player);
+      storageWrite("waitingPlayers", JSON.stringify(this.waitingPlayers));
+      return "Waiting for an opponent...";
     }
   }
-  // Set the winner (Admin function)
   set_winner({
     gameId,
     winner
   }) {
-    if (!this.games[gameId]) {
-      log("Game not found.");
-      throw new Error("Game not found.");
-    }
-    if (winner !== this.games[gameId].player1 && winner !== this.games[gameId].player2) {
-      log("Winner must be one of the players.");
-      throw new Error("Winner must be one of the players.");
+    if (!this.games[gameId]) throw new Error("Game not found.");
+    if (![this.games[gameId].player1, this.games[gameId].player2].includes(winner)) {
+      throw new Error("Winner must be a player.");
     }
     this.games[gameId].winner = winner;
+    storageWrite("games", JSON.stringify(this.games));
     log(`Winner set: ${winner} for game ${gameId}`);
   }
-  // Claim winnings (Winner withdraws funds)
   claim_winnings({
     gameId
   }) {
-    if (!this.games[gameId]) {
-      log("Game not found.");
-      throw new Error("Game not found.");
-    }
-    if (!this.games[gameId].winner) {
-      log("Winner not set.");
-      throw new Error("Winner not set.");
-    }
+    if (!this.games[gameId]) throw new Error("Game not found.");
+    if (!this.games[gameId].winner) throw new Error("Winner not set.");
     const sender = predecessorAccountId();
-    if (sender !== this.games[gameId].winner) {
-      log("You are not the winner.");
-      throw new Error("You are not the winner.");
-    }
-    const prize = BigInt(this.games[gameId].betAmount);
-    this.games[gameId].betAmount = "0"; // Reset the bet amount
+    if (sender !== this.games[gameId].winner) throw new Error("You are not the winner.");
+    const prize = BigInt(this.games[gameId].betAmount) * BigInt(2); // Winner gets full bet amount
+    this.games[gameId].betAmount = "0"; // Reset bet amount
 
-    log(`${sender} is claiming winnings of ${prize} yoctoNEAR`);
+    storageWrite("games", JSON.stringify(this.games));
+    log(`${sender} is claiming winnings of ${prize} yoctoNEAR.`);
 
-    // Transfer winnings to the winner
+    // Transfer winnings
     const promise = promiseBatchCreate(sender);
     promiseBatchActionTransfer(promise, prize);
   }
-  // Get game details
+  get_match({
+    player
+  }) {
+    return this.playerToGameId[player] || "No match yet";
+  }
   get_game({
     gameId
   }) {
-    if (!this.games[gameId]) {
-      return {
-        "hello": "world"
-      };
-    }
+    if (!this.games[gameId]) throw new Error("Game not found.");
     return this.games[gameId];
   }
-}, _applyDecoratedDescriptor(_class2.prototype, "place_bet", [_dec2], Object.getOwnPropertyDescriptor(_class2.prototype, "place_bet"), _class2.prototype), _applyDecoratedDescriptor(_class2.prototype, "set_winner", [_dec3], Object.getOwnPropertyDescriptor(_class2.prototype, "set_winner"), _class2.prototype), _applyDecoratedDescriptor(_class2.prototype, "claim_winnings", [_dec4], Object.getOwnPropertyDescriptor(_class2.prototype, "claim_winnings"), _class2.prototype), _applyDecoratedDescriptor(_class2.prototype, "get_game", [_dec5], Object.getOwnPropertyDescriptor(_class2.prototype, "get_game"), _class2.prototype), _class2)) || _class);
+}, _applyDecoratedDescriptor(_class2.prototype, "join_queue", [_dec2], Object.getOwnPropertyDescriptor(_class2.prototype, "join_queue"), _class2.prototype), _applyDecoratedDescriptor(_class2.prototype, "set_winner", [_dec3], Object.getOwnPropertyDescriptor(_class2.prototype, "set_winner"), _class2.prototype), _applyDecoratedDescriptor(_class2.prototype, "claim_winnings", [_dec4], Object.getOwnPropertyDescriptor(_class2.prototype, "claim_winnings"), _class2.prototype), _applyDecoratedDescriptor(_class2.prototype, "get_match", [_dec5], Object.getOwnPropertyDescriptor(_class2.prototype, "get_match"), _class2.prototype), _applyDecoratedDescriptor(_class2.prototype, "get_game", [_dec6], Object.getOwnPropertyDescriptor(_class2.prototype, "get_game"), _class2.prototype), _class2)) || _class);
 function get_game() {
   const _state = ChessBettingGame._getState();
   if (!_state && ChessBettingGame._requireInit()) {
@@ -2641,6 +2669,19 @@ function get_game() {
   }
   const _args = ChessBettingGame._getArgs();
   const _result = _contract.get_game(_args);
+  if (_result !== undefined) if (_result && _result.constructor && _result.constructor.name === "NearPromise") _result.onReturn();else env.value_return(ChessBettingGame._serialize(_result, true));
+}
+function get_match() {
+  const _state = ChessBettingGame._getState();
+  if (!_state && ChessBettingGame._requireInit()) {
+    throw new Error("Contract must be initialized");
+  }
+  const _contract = ChessBettingGame._create();
+  if (_state) {
+    ChessBettingGame._reconstruct(_contract, _state);
+  }
+  const _args = ChessBettingGame._getArgs();
+  const _result = _contract.get_match(_args);
   if (_result !== undefined) if (_result && _result.constructor && _result.constructor.name === "NearPromise") _result.onReturn();else env.value_return(ChessBettingGame._serialize(_result, true));
 }
 function claim_winnings() {
@@ -2671,7 +2712,7 @@ function set_winner() {
   ChessBettingGame._saveToStorage(_contract);
   if (_result !== undefined) if (_result && _result.constructor && _result.constructor.name === "NearPromise") _result.onReturn();else env.value_return(ChessBettingGame._serialize(_result, true));
 }
-function place_bet() {
+function join_queue() {
   const _state = ChessBettingGame._getState();
   if (!_state && ChessBettingGame._requireInit()) {
     throw new Error("Contract must be initialized");
@@ -2681,10 +2722,10 @@ function place_bet() {
     ChessBettingGame._reconstruct(_contract, _state);
   }
   const _args = ChessBettingGame._getArgs();
-  const _result = _contract.place_bet(_args);
+  const _result = _contract.join_queue(_args);
   ChessBettingGame._saveToStorage(_contract);
   if (_result !== undefined) if (_result && _result.constructor && _result.constructor.name === "NearPromise") _result.onReturn();else env.value_return(ChessBettingGame._serialize(_result, true));
 }
 
-export { claim_winnings, get_game, place_bet, set_winner };
+export { ChessBettingGame, claim_winnings, get_game, get_match, join_queue, set_winner };
 //# sourceMappingURL=hello_near.js.map

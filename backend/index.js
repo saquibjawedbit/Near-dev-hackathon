@@ -5,6 +5,9 @@ import {Server} from "socket.io";
 import cors from "cors";
 import gameRouter from "./routes/gameRoutes.js";
 import contractRouter from "./routes/contractRoutes.js";
+import {  viewContract, getAccount } from "./utils/nearClient.js";
+import { ChessContract } from "../frontend/src/config.js";
+
 
 
 const app = express();

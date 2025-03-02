@@ -3,6 +3,13 @@ import { Server } from "socket.io";
 import { Chess } from "chess.js";
 import http from "http";
 import express from "express";
+import { getAccount } from "../utils/nearClient.js";
+
+let account;
+getAccount().then((res) => {
+  console.log("NEAR account initialized");
+  account = res;
+});
 
 const app = express();
 const server = http.createServer(app);
@@ -41,45 +48,73 @@ async function playAIvsAI(gameId) {
   let chess = new Chess();
   let moves = [];
 
-  while (!chess.isGameOver()) {
-    let move;
+  // while (!chess.isGameOver()) {
+  //   let move;
     
-    if (moves.length === 0) {
-      move = "e2e4"; 
-    } else {
-      const useBestMove = Math.random() > 0.1;
-      move = useBestMove ? await getBestMove(chess.fen()) : getRandomMove(chess);
-    }
+  //   if (moves.length === 0) {
+  //     move = "e2e4"; 
+  //   } else {
+  //     const useBestMove = Math.random() > 0.1;
+  //     move = useBestMove ? await getBestMove(chess.fen()) : getRandomMove(chess);
+  //   }
 
-    if (!move || !chess.move(move)) break;
+  //   if (!move || !chess.move(move)) break;
 
-    console.log(`Move ${moves.length + 1}:`, move);
-    moves.push(move);
+  //   console.log(`Move ${moves.length + 1}:`, move);
+  //   moves.push(move);
 
-    liveMatches[gameId] = { moves, winner: null };
+  //   liveMatches[gameId] = { moves, winner: null };
 
-    // Emit move to frontend
-    io.to(gameId).emit(`match-update-${gameId}`, { moves });
+  //   // Emit move to frontend
+  //   io.to(gameId).emit(`match-update-${gameId}`, { moves });
 
-    await new Promise((resolve) => setTimeout(resolve, 3000)); // Delay for 3s
+  //   await new Promise((resolve) => setTimeout(resolve, 3000)); // Delay for 3s
 
-    if (chess.isGameOver()) break;
-  }
+  //   if (chess.isGameOver()) break;
+  // }
 
   // Determine winner
-  let winner;
-  if (chess.isCheckmate()) {
-    winner = chess.turn() === "w" ? "AI 2" : "AI 1";
-  } else if (chess.isStalemate()) {
-    winner = "Draw (Stalemate)";
-  } else if (chess.isInsufficientMaterial()) {
-    winner = "Draw (Insufficient Material)";
-  } else if (chess.isThreefoldRepetition()) {
-    winner = "Draw (Threefold Repetition)";
-  } else {
-    winner = "Draw (50-move rule)";
+  let winner = "AI 1";
+  // if (chess.isCheckmate()) {
+  //   winner = chess.turn() === "w" ? "AI 2" : "AI 1";
+  // } else {
+  //   winner = "AI 1";
+  // }
+
+  //get first player name
+  const players = gameId.split("_");
+
+  if(winner == "AI 1") {
+    winner = players[0];
+  }
+  else {
+    winner = players[1];
   }
 
+  const contractCallResult = await account.functionCall({
+    contractId: "saquibjawed.testnet", // Contract account ID
+    methodName: "set_winner", // Method to call
+    args: {
+      gameId: gameId,
+      winner: winner,
+    }, // Arguments for the method
+    gas: 100000000000000, // Optional: gas limit
+    deposit: 0, // Optional: deposit in yoctoNEAR
+  });
+
+  const contractCallResult1 = await account.functionCall({
+    contractId: "saquibjawed.testnet", // Contract account ID
+    methodName: "claim_winnings", // Method to call
+    args: {
+      gameId: gameId,
+    }, // Arguments for the method
+    gas: 100000000000000, // Optional: gas limit
+    deposit: 0, // Optional: deposit in yoctoNEAR
+  });
+
+
+
+  console.log(contractCallResult);
   console.log("Game Over! Winner:", winner);
   liveMatches[gameId] = { moves, winner };
   io.to(gameId).emit(`match-end-${gameId}`, { winner, moves });
@@ -101,7 +136,7 @@ io.on("connection", (socket) => {
 
 // Start a match
 export const startMatch = (req, res) => {
-  const gameId = `game-${Date.now()}`;
+  const {gameId} = req.body;
   liveMatches[gameId] = { moves: [], winner: null };
 
   playAIvsAI(gameId);

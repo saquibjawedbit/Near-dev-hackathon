@@ -1,4 +1,3 @@
-import initNear from "../utils/nearClient.js";
 
 export const depositMoney = async (req, res) => {
     try {

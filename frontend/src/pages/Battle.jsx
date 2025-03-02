@@ -19,10 +19,10 @@ const Battle = () => {
       let gameID = await callFunction({
         contractId: ChessContract,
         method: "join_queue",
-        args: { account_id: signedAccountId},
       });
-     
+      
       console.log("Bet placed:", gameID);
+      return gameID;
     } catch (error) {
       console.error("Bet failed:", error);
       alert("Error placing bet.");
@@ -32,8 +32,8 @@ const Battle = () => {
 
   const startGame = async (model, bet) => {
     try {
-      await handlePlaceBet();
-      const response = await axios.post("http://localhost:5000/api/game/start-match");
+      const gameId = await handlePlaceBet();
+      const response = await axios.post("http://localhost:5000/api/game/start-match", {gameId});
 
       if (response.data && response.data.gameId) {
         setSelectedModel(model);
@@ -50,22 +50,6 @@ const Battle = () => {
       console.error("Error starting the game:", error);
     }
   };
-
-  useEffect(() => {
-    if(signedAccountId) {
-      viewFunction({
-        contractId: ChessContract,
-        method: "get_game",
-        args: { account_id: signedAccountId, game_id: signedAccountId },
-      })
-      .then((game) => {
-        console.log("Game:", game);
-      })
-      .catch(error => {
-        console.error("Error fetching game:", error);
-      });
-    }
-  }, [signedAccountId]);
 
 
   return (
